@@ -10,21 +10,22 @@ public class GeneticAlgoritm {
     
     private static int firstCrossbreeding; // Позиция по x первого числа для скрещевания
     private static int secondCrossbreeding; // Позиция по x второго числа для скрещевания
+    public static int[][] bin;
     
-    public static int[][] firstPeople(String name) throws IOException { // считывает время для каждой особи из файла oldPeople.txt
+    public static void firstPeople(String name) throws IOException { // считывает время для каждой особи из файла oldPeople.txt
         
         Scanner scan = new Scanner(new File(name + ".txt"));
         int vCount = Integer.valueOf(scan.nextLine());
-        int[][] timeGR = new int[vCount][2];
+        bin = new int[vCount][2];
         for (int i = 0; i < vCount; i++) {
             String[] arr = scan.nextLine().split("<next>");
-            timeGR[i][0] = Integer.parseInt(arr[0]);
-            timeGR[i][1] = Integer.parseInt(arr[1]);
+            bin[i][0] = Integer.parseInt(arr[0]);
+            bin[i][1] = Integer.parseInt(arr[1]);
         }
-        return timeGR;
+        Simulator.start(bin);
     }
     
-    public static double[] P(int[] timeOfStop, int length) { // Определяет вероятнось для каждой особи
+    public static void P(int[] timeOfStop) { // Определяет вероятнось для каждой особи
         
         int sum = 0;
         double summ = 0;
@@ -32,17 +33,24 @@ public class GeneticAlgoritm {
         for(int i : timeOfStop) {
             sum += i;
         }
-        for(int i = 1; i < length + 1; i++) {
+        for(int i = 0; i < timeOfStop.length; i++) {
+            timeOfStop[i] = sum - timeOfStop[i];
+        }
+        sum = 0;
+        for(int i : timeOfStop) {
+            sum += i;
+        }
+        for(int i = 1; i < timeOfStop.length + 1; i++) {
             P[i] = 360 * timeOfStop[i - 1];
             P[i] /= sum ;
             P[i] += summ;
             summ = P[i];
         }
         P[0] = -1;
-        return P;
+        roulette(bin, P);
     }
     
-    public static int[][] roulette(int[][] bin, double[] P) { // рулетка
+    public static void roulette(int[][] bin, double[] P) { // рулетка
         
         firstCrossbreeding = -1;
         secondCrossbreeding = -1;
@@ -62,10 +70,10 @@ public class GeneticAlgoritm {
                 }
             }
         }
-        return luckyInt;
+        crossbreeding(luckyInt, 2);
     }
     
-    public static int[][] crossbreeding(int[][] luckyInt, int pos) { //скрещевание
+    public static void crossbreeding(int[][] luckyInt, int pos) { //скрещевание
         
         int[] masks = new int[2];
         int[][] newGeneration = new int[2][2];
@@ -79,10 +87,10 @@ public class GeneticAlgoritm {
                 masks[0]);
         newGeneration[1][1] = (luckyInt[0][1] & masks[0])|(luckyInt[1][1] & 
                 masks[1]);
-        return newGeneration;
+        combining(newGeneration, bin);
     }
     
-    public static int[][] combining(int[][] newInt, int[][] bin) { // меняет старое время на новое
+    public static void combining(int[][] newInt, int[][] bin) { // меняет старое время на новое
         
         for(int i = 0; i < 2; i++) {
             bin[firstCrossbreeding][i] = newInt[0][i];
@@ -90,7 +98,7 @@ public class GeneticAlgoritm {
         for(int i = 0; i < 2; i++) {
             bin[secondCrossbreeding][i] = newInt[1][i];
         }
-        return bin;
+        save(bin);
     }
     
     public static void save(int[][] newGeneration) { // сохраняет в файл newPeople.txt
@@ -118,18 +126,5 @@ public class GeneticAlgoritm {
             bw.close();
         } catch (IOException e){
         }
-    }
-    
-    public static void main(String[] args) throws IOException {
-        
-        int[][] bin = firstPeople("newPeople"); // числа из файла oldPeople.txt
-        int[] timeOfStop = {1, 2, 3, 4}; // числа в массив будут переходить из симулятора
-        double[] P = P(timeOfStop, bin.length); // вероятность выпадение каждой особи
-        int[][] luckyInt = roulette(bin, P); // luckyInt[2][2], числа для скрещевания
-                                             // luckyInt[][0] = врямя зеленого цвета, точно не помню, может и наоборот) 
-                                             // luckyInt[][1] = время красного цвета
-        int[][] newGeneration = crossbreeding(luckyInt, 2); // пока что там измененный числа ( в скрещеваннии )
-        bin = combining(newGeneration, bin);// возврат измененных чисел к bin
-        save(bin);// сохранение в файл newPeople.txt
     }
 }
