@@ -8,10 +8,10 @@ import java.util.Scanner;
 
 public class GeneticAlgoritm {
     
-    private static int firstCrossbreeding;
-    private static int secondCrossbreeding;
+    private static int firstCrossbreeding; // Позиция по x первого числа для скрещевания
+    private static int secondCrossbreeding; // Позиция по x второго числа для скрещевания
     
-    public static int[][] firstPeople(String name) throws IOException { // считывает время для каждой особи из файла
+    public static int[][] firstPeople(String name) throws IOException { // считывает время для каждой особи из файла oldPeople.txt
         
         Scanner scan = new Scanner(new File(name + ".txt"));
         int vCount = Integer.valueOf(scan.nextLine());
@@ -42,7 +42,7 @@ public class GeneticAlgoritm {
         return P;
     }
     
-    public static int[][] roulette(int[][] bin, double[] P) { // старая версия рулетки, не всегда работает  
+    public static int[][] roulette(int[][] bin, double[] P) { // рулетка
         
         firstCrossbreeding = -1;
         secondCrossbreeding = -1;
@@ -82,7 +82,7 @@ public class GeneticAlgoritm {
         return newGeneration;
     }
     
-    public static int[][] combining(int[][] newInt, int[][] bin) {
+    public static int[][] combining(int[][] newInt, int[][] bin) { // меняет старое время на новое
         
         for(int i = 0; i < 2; i++) {
             bin[firstCrossbreeding][i] = newInt[0][i];
@@ -93,7 +93,7 @@ public class GeneticAlgoritm {
         return bin;
     }
     
-    public static void save(int[][] newGeneration) {
+    public static void save(int[][] newGeneration) { // сохраняет в файл newPeople.txt
         
         try {
             File file = new File("newPeople.txt");
@@ -117,20 +117,19 @@ public class GeneticAlgoritm {
             }
             bw.close();
         } catch (IOException e){
-            e.printStackTrace();
         }
     }
     
     public static void main(String[] args) throws IOException {
         
-        int[][] bin = firstPeople("newPeople"); // в bin кладутся числа из файла people.txt
+        int[][] bin = firstPeople("newPeople"); // числа из файла oldPeople.txt
         int[] timeOfStop = {1, 2, 3, 4}; // числа в массив будут переходить из симулятора
-        double[] P = P(timeOfStop, bin.length); // в P кладутся вероятность выпадение каждой особи
-        int[][] luckyInt = roulette(bin, P); // luckyInt[2][2], в который кладутся числа для скрещевания
-                                             // luckyInt[][0] = врямя зеленого цвета ( точно не помню, может и наоборот) )
+        double[] P = P(timeOfStop, bin.length); // вероятность выпадение каждой особи
+        int[][] luckyInt = roulette(bin, P); // luckyInt[2][2], числа для скрещевания
+                                             // luckyInt[][0] = врямя зеленого цвета, точно не помню, может и наоборот) 
                                              // luckyInt[][1] = время красного цвета
         int[][] newGeneration = crossbreeding(luckyInt, 2); // пока что там измененный числа ( в скрещеваннии )
-        bin = combining(newGeneration, bin);
-        save(bin);
+        bin = combining(newGeneration, bin);// возврат измененных чисел к bin
+        save(bin);// сохранение в файл newPeople.txt
     }
 }
